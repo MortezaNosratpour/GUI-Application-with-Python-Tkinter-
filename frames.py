@@ -1,18 +1,20 @@
 import tkinter as tk
+from tkinter import ttk
 from tkinter.ttk import *
 from tkinter import filedialog
 from tkinter import font as tkfont
 from tkinter import messagebox
-from PIL import Image, ImageTk
+
+# from PIL import Image, ImageTk
 import csv
 import os
 import datetime
-
+from TkinterDnD2 import DND_FILES, TkinterDnD
 
 
 class MainFrame(tk.Tk):
     def __init__(self, *args, **kwargs):
-        self.root = tk.Tk()
+        self.root = TkinterDnD.Tk()
         self.root.title('IPCO')
         # setting the icon
         self.root.iconbitmap('icon.ico')
@@ -38,7 +40,7 @@ class MainFrame(tk.Tk):
 
         self.listing = {}
 
-        pages = [WelcomePage, FileNewPage, FileNewProject, FileOpenPage, ViewThemePage]
+        pages = [WelcomePage, FileNewPage, FileNewProject, FileOpenPage, ProcessPage, ViewThemePage]
         for p in pages:
             page_name = p.__name__
             frame = p(parent=container, controller=self)
@@ -86,6 +88,7 @@ class MainFrame(tk.Tk):
         page.tkraise()
 
 
+
 class ButtonStyle:
     def __init__(self):
         style = Style()
@@ -98,6 +101,8 @@ class ButtonStyle:
         # Changes will be reflected
         # by the movement of mouse.
         style.map('TButton', foreground=[('active', '!disabled', 'green')], background=[('active', 'black')])
+
+
 
 
 
@@ -196,6 +201,7 @@ class FileNewPage(tk.Frame):
 
 
     def cancel_project(self):
+        #clear all values and get back to welcome page
         self.file_directory= ""
         self.project_name = ""
         self.controller.up_frame("WelcomePage")
@@ -352,17 +358,46 @@ class FileOpenPage(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.controller = controller
         self.id = controller.id
+        # path of txt file of project
         self.file_path = None
+        #protocols and parameters that user had selected during creating the projects
         self.protocol = ""
         self.selected_parameters = []
+        # buttons
         self.browse_button = None
         self.cancel_button = None
 
-        label = tk.Label(self, text="Import Files : ", font=controller.titlefont)
+        #drag and drop area
+        self.listb = None
+        self.box_scrollbar = None
+
+        #list of csv files
+        self.files_list = []
+
+
+
+
+        label = tk.Label(self, text="Drag and drop files : ", font=controller.titlefont)
         label.pack()
 
+        # a button for getting back to welcome page
+        self.cancel_button = Button(self, text="Back", command=lambda: self.controller.up_frame("WelcomePage"))
+        self.cancel_button.pack(side='bottom')
+        # a button for getting to process page
+        self.browse_button = Button(self, text="Next", command=lambda: self.controller.up_frame("ProcessPage"))
+        self.browse_button.pack(side='bottom')
 
+
+        #run drag and drop and get csv files
+        self.import_csv_files()
+
+    #a function for importing the txt file of project including the protocol and parameters of the project
     def import_project(self):
+        #clear all elements in listbox
+        self.listb.delete("0", "end")
+        self.files_list.clear()
+
+        #import the .txt file of the project
         filetypes = (
             ('text files', '*.txt'),
             ('All files', '*.*')
@@ -371,6 +406,7 @@ class FileOpenPage(tk.Frame):
             title='Import the project',
             filetypes=filetypes)
 
+        #initiate the protocol and parameters variable by values in txt file of project
         if self.file_path != None:
             with open(self.file_path) as f:
                 contents = f.readlines()
@@ -381,15 +417,98 @@ class FileOpenPage(tk.Frame):
             print(self.protocol, self.selected_parameters)
 
             button_style = ButtonStyle()
-            if self.browse_button != None:
-                self.browse_button.pack_forget()
-                self.cancel_button.pack_forget()
 
-            self.browse_button = Button(self, text="Import", command=lambda: self.controller.up_frame("WelcomePage"))
-            self.browse_button.pack(side='left')
 
-            self.cancel_button = Button(self, text="Back", command=lambda: self.controller.up_frame("WelcomePage"))
-            self.cancel_button.pack(side='right')
+
+    #getting the paths of the csv files and printing them in drag and drop listbox
+    def drop_inside_listbox(self, event):
+        print(event.data[1:-1])
+        if event.data[1:-1].endswith(".csv"):
+            self.listb.insert("end", event.data)
+            self.files_list.append(event.data[1:-1])
+
+        else:
+            tk.messagebox.showwarning(title="Warning!", message="Wrong file! \nPlease select files with .csv suffix.")
+            return
+
+
+
+    #create a listbox for draging and droping the files in it (it also has scrollbar)
+    def import_csv_files(self):
+        self.listb = tk.Listbox(self, background="#ffe0d6", width=60, height=15)
+        self.box_scrollbar = tk.Scrollbar(self, orient='vertical')
+        self.listb.config(yscrollcommand=self.box_scrollbar.set, selectmode='extended')
+        self.box_scrollbar.config(command=self.listb.yview)
+        self.box_scrollbar.pack(side='right', fill='y')
+        self.listb.pack(side='right', fill='y')
+        self.listb.drop_target_register(DND_FILES)
+        self.listb.dnd_bind("<<Drop>>", self.drop_inside_listbox)
+
+
+
+
+
+class ProcessPage(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+        self.id = controller.id
+        #progress bar
+        self.pb = None
+
+        process_font = tkfont.Font(family='Verdana', size=9, weight="bold", slant='roman')
+
+        label1 = tk.Label(self, text = "Current project: ", font=controller.titlefont)
+        label1.pack(side ='top')
+
+        # label2 = tk.Label(self, text= app.listing["FileOpenPage"].file_path[:-15], font=process_font)
+        # label2.pack(side='top')
+
+        # label3 = tk.Label(self, text= app.listing["Imported files: "].file_path[:-15], font=controller.titlefont)
+        # label3.pack(side='top')
+
+        # for i in range(len(app.listing["FileOpenPage"].files_list)):
+        #     label4 = tk.Label(self, text= app.listing["FileOpenPage"].files_list[i], font=process_font)
+        #     label4.pack(side='top')
+
+
+
+        bs = ButtonStyle()
+        #start button
+        new_button = Button(self,style='TButton', text = "Start", command=self.progress)
+        new_button.pack(side='bottom')
+
+        #stop button
+        new_button = Button(self, style='TButton', text="Stop", command=self.stop)
+        new_button.pack(side='bottom')
+
+        self.pb = ttk.Progressbar(self, orient='horizontal', mode='determinate', length=280)
+        self.pb.pack(side='right')
+
+        # label
+        global value_label
+        value_label = ttk.Label(self, text=self.update_progress_label())
+        value_label.pack(side='top', pady=20)
+
+    def update_progress_label(self):
+        return f"Current Progress: {self.pb['value']}%"
+
+
+    def progress(self):
+        if self.pb['value'] < 100:
+            self.pb['value'] += 20
+            value_label['text'] = self.update_progress_label()
+        else:
+            messagebox.showinfo(message='The progress completed!')
+
+
+    def stop(self):
+        self.pb.stop()
+        value_label['text'] = self.update_progress_label()
+
+
+
+
 
 
 class ViewThemePage(tk.Frame):
@@ -404,6 +523,8 @@ class ViewThemePage(tk.Frame):
         bs = ButtonStyle()
         new_button = Button(self,style='TButton', text = "Select", command=lambda:controller.up_frame("ViewThemePage"))
         new_button.pack(side='right')
+
+
 
 
 if __name__ == "__main__" :
