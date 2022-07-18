@@ -8,7 +8,7 @@ from tkinter import messagebox
 # from PIL import Image, ImageTk
 import csv
 import os
-import datetime
+import time
 from TkinterDnD2 import DND_FILES, TkinterDnD
 
 
@@ -381,7 +381,7 @@ class FileOpenPage(tk.Frame):
         label.pack()
 
         # a button for getting back to welcome page
-        self.cancel_button = Button(self, text="Back", command=lambda: self.controller.up_frame("WelcomePage"))
+        self.cancel_button = Button(self, text="Back", command=self.cancel_button)
         self.cancel_button.pack(side='bottom')
         # a button for getting to process page
         self.browse_button = Button(self, text="Next", command=lambda: self.controller.up_frame("ProcessPage"))
@@ -446,6 +446,12 @@ class FileOpenPage(tk.Frame):
 
 
 
+    def cancel_button(self):
+        #make the list of files path empty
+        self.files_list.clear()
+        #get back to welcome page
+        self.controller.up_frame("WelcomePage")
+
 
 
 class ProcessPage(tk.Frame):
@@ -475,31 +481,37 @@ class ProcessPage(tk.Frame):
 
         bs = ButtonStyle()
         #start button
-        new_button = Button(self,style='TButton', text = "Start", command=self.progress)
+        new_button = Button(self,style='TButton', text = "Start", command=self.progress_start)
         new_button.pack(side='bottom')
 
         #stop button
         new_button = Button(self, style='TButton', text="Stop", command=self.stop)
         new_button.pack(side='bottom')
 
-        self.pb = ttk.Progressbar(self, orient='horizontal', mode='determinate', length=280)
+        self.pb = ttk.Progressbar(self, orient='horizontal', mode='determinate', cursor='spider', length=280)
         self.pb.pack(side='right')
 
         # label
         global value_label
         value_label = ttk.Label(self, text=self.update_progress_label())
-        value_label.pack(side='top', pady=20)
+        value_label.pack(side='right')
 
     def update_progress_label(self):
         return f"Current Progress: {self.pb['value']}%"
 
 
-    def progress(self):
-        if self.pb['value'] < 100:
-            self.pb['value'] += 20
-            value_label['text'] = self.update_progress_label()
-        else:
-            messagebox.showinfo(message='The progress completed!')
+    def progress_start(self):
+        number_of_files = len(app.listing["FileOpenPage"].files_list)
+        step = 100/number_of_files
+        for file_path in app.listing["FileOpenPage"].files_list:
+            #get data from each csv file
+            #TODO
+            if self.pb['value'] < 100:
+                self.pb['value'] += step
+                self.update()
+                value_label['text'] = self.update_progress_label()
+            else:
+                messagebox.showinfo(message='The progress completed!')
 
 
     def stop(self):
