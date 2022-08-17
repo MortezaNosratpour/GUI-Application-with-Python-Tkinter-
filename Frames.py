@@ -4,6 +4,7 @@ from tkinter.ttk import *
 from tkinter import filedialog
 from tkinter import font as tkfont
 from tkinter import messagebox
+from tkinter import Entry, StringVar
 # from PIL import Image, ImageTk
 import os
 import math
@@ -80,7 +81,7 @@ class MainFrame(tk.Tk):
 
 
     def open_project(self):
-        listing["FileOpenPage"].import_project()
+        # listing["FileOpenPage"].import_project()
         self.up_frame("FileOpenPage")
 
     def up_frame(self, page_name):
@@ -122,8 +123,8 @@ class WelcomePage(tk.Frame):
         new_button.pack(pady=10)
 
         #Open Button
-        new_button = Button(self,style='TButton', text = "Open Project", command=lambda : app.open_project())
-        new_button.pack()
+        open_button = Button(self,style='TButton', text = "Open Project", command=lambda : app.open_project())
+        open_button.pack()
 
 
 
@@ -226,6 +227,8 @@ class FileNewProject(tk.Frame):
         self.parameters_list = None
         #scorllbar for listbox
         self.box_scrollbar = None
+        #String for searching in listbox
+        self.search_str=None
 
 
         global options
@@ -241,7 +244,36 @@ class FileNewProject(tk.Frame):
                                                 "Coolant temperature", "Intake air temperature", "Air conditioner evapurator temperature", "Boost intake air temperature", "Cruise switch status",
                                                 "Total knock retreat angle of each cylinder (There are 4 cylinders)", "Intake VVT actual opening", "Exhaust VVT actual openning", "Speed",
                                                 "Engine speed", "Short-term fuel correction factor", "Fuel correction zone", "Long-term fuel correction factor", "Fuel injection pulse width",
-                                                "Target air-fuel ratio", "Fuel control status", "PWM fan control duty ratio"]
+                                                "Target air-fuel ratio", "Fuel control status", "PWM fan control duty ratio", "Upstream oxygen sensor heating air ratio",
+                                                "Downstream oxygen sensor heating air ratio", "Electronic thermostat control duty ratio", "Canister valve control duty ratio",
+                                                "Ignition advance angle", "Waste gate control valve duty ratio", "EGR duty ratio", "Electronic throttle control valve drive motor duty cycle",
+                                                "Intaje VVT control duty ratio", "Exhaust VVT control duty ratio", "Switch value", "Estimated catalyst temperature", "Target idle speed", "Linear EGR target position",
+                                                "Ignition coil magnetization time", "Historical malfunction code", "Current malfunction code", "Engine off time", "Engine running time", "Engine status",
+                                                "Knock sensor integral value", "Status bit", "Coolant temperature at start-up", "Intaje airtemperature at start", "Intake VVT target opening",
+                                                "Electronic throttle target opening", "Idle control status", "Current gear shift position", "Aeration efficiency", "Altitude corrected manifold pressure",
+                                                "Intake flow", "Charger pressure setpoint", "Cumulative mileage", "Idle speed", "Exhaust and intake pressure ratio", "Compressor flow", "Turbo speed",
+                                                "Ambient temperature", "Total number of fires", "Catalyst oxygen storage time", "2# cylinder current misfire times", "1# cylinder current misfire times",
+                                                "3# cylinder current fire times", "4# cylinder current misfire times", "1# cylinder history misfire times", "2# cylinder history misfire times", "3# cylinder history misfire times",
+                                                "4# cylinder history misfire times", "The upstream oxygen sensor from lean to rich average time", "The upstream oxygen sensor from rich to lean average time",
+                                                "Crank shaft sensor tooth error count", "Reference IMEP", "Actual IMEP", "GPF inlet temperature", "High pressure desorption pressure sensor", "PVC conductive tube voltage",
+                                                "Cruise target speed", "GPF outlet pressure sensor voltage", "GPF inlet pressure", "GPF outlet pressure", "Coolant temperature sensor 2 voltage", "Coolant temperature 2 way temperature",
+                                                "Wheel speed", "Area 0 long term fuel correction coefficient", "Area 1 long term fuel correction coefficient", "Area 2 long term fuel correction coefficient", "Area 3 long term fuel correction coefficient",
+                                                "Area 4 long term fuel correction coefficient", "Area 5 long term fuel correction coefficient", "Area 6 long term fuel correction coefficient", "Area 7 long term fuel correction coefficient",
+                                                "Area 8 long term fuel correction coefficient", "Area 9 long term fuel correction coefficient", "Area 10 long term fuel correction coefficient", "Area 11 long term fuel correction coefficient",
+                                                "Area 12 long term fuel correction coefficient", "Area 13 long term fuel correction coefficient", "Area 14 long term fuel correction coefficient", "Area 15 long term fuel correction coefficient",
+                                                "Area 16 long term fuel correction coefficient", "Area 17 long term fuel correction coefficient", "Area 18 long term fuel correction coefficient", "Area 19 long term fuel correction coefficient",
+                                                "Area 20 long term fuel correction coefficient", "Area 21 long term fuel correction coefficient", "Area 22 long term fuel correction coefficient", "Area 23 long term fuel correction coefficient",
+                                                "Area 24 long term fuel correction coefficient", "Area 25 long term fuel correction coefficient", "Throttle opening degree 0 flow learning value", "Throttle opening degree 1 flow learning value",
+                                                "Throttle opening degree 2 flow learning value", "Throttle opening degree 3 flow learning value", "Throttle opening degree 4 flow learning value", "Throttle opening degree 5 flow learning value",
+                                                "Throttle opening degree 6 flow learning value", "Throttle opening degree 7 flow learning value", "Throttle opening degree 8 flow learning value", "Throttle opening degree 9 flow learning value",
+                                                "Throttle opening degree 10 flow learning value", "Throttle opening degree 11 flow learning value", "Throttle opening degree 12 flow learning value", "Throttle opening degree 13 flow learning value",
+                                                "Throttle opening degree 14 flow learning value", "GPF indicator light", "TEL tooth info 1", "TEL tooth info 2", "TEL tooth info 3", "TEL tooth info 4", "Main injection eoi", "Crash signal active",
+                                                "Stroke flow percent", "Clutch torque", "Alternator duty", "Air mass setpoint from torque", "Trip fuel consumption", "Average fuel consumption rate", "Pumping and rubbing friction torque at current condition",
+                                                "Cat damage misfire detected", "Fan feedback voltage", "Corrected main ignition angle when engine state is run", "Main ignition angle when engine state is run", "IAT bias of base ignition angle",
+                                                "ECT bias of base ignition angle", "RON factor used to calculate base IGA based on different IGA table", "Max charger pressure setpoint limit. Including charger limit and engine limit.",
+                                                "Flywheel torq max limit value", "Max charger pressure setpoint limited by engine hardware", "Charger close loop control correction term. I term + P term or I term - P term", "Ignition efficiency",
+                                                "Downstream o2 p hold delay i term 0", "Downstream o2 p hold delay i term 1", "Downstream o2 p hold delay i term 2", "Downstream o2 p hold delay i term 3", "Downstream o2 p hold delay i term 4",
+                                                "Downstream o2 p hold delay i term 5", "current osc mmv", "Diag try times" ]
 
         self.protocol_parameters[options[2]] = ["parameter2_1", "parameter2_2", "parameter2_3", "parameter2_4",
                                                 "parameter2_5", "parameter2_6", "parameter2_7", "parameter2_8"]
@@ -285,12 +317,35 @@ class FileNewProject(tk.Frame):
         self.protocol_option = OptionMenu(self, self.clicked, *options, command=self.config_listbox)
         self.protocol_option.pack()
 
+    def cb_search(self, event):
+        sstr = self.search_str.get()
+        self.parameter_listbox.delete(0, "end")
+        # If filter removed show all data
+        if sstr == "":
+            for p in self.parameters_list:
+                print(self.selected_parameters)
+                self.parameter_listbox.insert(len(self.parameters_list) - 1, p)
+            return
+
+        filtered_data = list()
+        for item in self.parameters_list:
+            if item.find(sstr) >= 0:
+                filtered_data.append(item)
+
+        for item in filtered_data:
+            self.parameter_listbox.insert("end", item)
+
 
     def create_listbox(self):
         font = tkfont.Font(family='Verdana', size=9, slant='roman')
-        self.parameter_listbox = tk.Listbox(self, background="#ffe0d6", width=60, height=15, font=font, highlightcolor="green",
+        self.parameter_listbox = tk.Listbox(self, background="#ffe0d6", width=70, height=15, font=font, highlightcolor="green",
                                                 selectbackground="green", cursor='plus', activestyle='dotbox', relief='groove')
         self.box_scrollbar = tk.Scrollbar(self, orient='vertical')
+
+        self.search_str = StringVar()
+        search = Entry(self, textvariable=self.search_str, width=70)
+        search.pack()
+        search.bind('<Return>', self.cb_search)
 
 
 
@@ -304,7 +359,7 @@ class FileNewProject(tk.Frame):
         for p in self.parameters_list:
             self.parameter_listbox.insert(len(self.parameters_list)-1, p)
 
-        self.parameter_listbox.config(yscrollcommand=self.box_scrollbar.set, selectmode='extended')
+        self.parameter_listbox.config(yscrollcommand=self.box_scrollbar.set, selectmode='multiple')
         self.box_scrollbar.config(command=self.parameter_listbox.yview)
         self.box_scrollbar.pack(side='right', fill='y')
         self.parameter_listbox.pack(side='left')
@@ -325,6 +380,7 @@ class FileNewProject(tk.Frame):
             pass
 
 
+    # def add_selected_parameters
     def create_file(self):
         selected_index = self.parameter_listbox.curselection()
         self.selected_parameters.clear()
@@ -477,7 +533,7 @@ class FileOpenPage(tk.Frame):
         #make the list of files path empty
         self.files_list.clear()
         #get back to welcome page
-        self.controller.up_frame("WelcomePage")
+        self.controller.up_frame("FileNewProject")
 
 
     def delete_selected_files(self):
@@ -605,7 +661,7 @@ class ProcessPage(tk.Frame):
                         for i in range(response_length):
                             response += str(df.iloc[indx][i + 6])
 
-                        print(indx, response)
+                        # print(indx, response)
 
                         if data.get(parameter_code) == None:
                             data[parameter_code] = []
@@ -618,13 +674,14 @@ class ProcessPage(tk.Frame):
                         self.update()
                         value_label['text'] = self.update_progress_label()
                         time_label['text'] = self.update_time_label()
+
                 else:
                     self.pb['value']=0
                     value_label['text'] = "Current Progress: 0%"
                     value_label['text'] = self.update_progress_label()
                     break
 
-            value_label['text'] = "Current Progress: 100%"
+            # value_label['text'] = "Current Progress: 100%"
 
             # messagebox.showinfo(message='The progress completed!')
 
@@ -633,10 +690,13 @@ class ProcessPage(tk.Frame):
         self.controller.up_frame("FileOpenPage")
 
     def stop(self):
+        self.pb['value'] = 0
+        value_label['text'] = "Current Progress: 0%"
+        value_label['text'] = self.update_progress_label()
         self.break_progress=True
         self.pb.stop()
-        value_label['text'] = self.update_progress_label()
         self.start_time=0
+        value_label['text'] = self.update_progress_label()
         self.stop_button.config(text="Back", command=self.back_to_open_page)
         self.stop_button.pack(side='bottom')
 
